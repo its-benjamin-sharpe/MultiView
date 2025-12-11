@@ -16,6 +16,7 @@ const videoElements = [
     document.getElementById('player4')
 ];
 let isMuted = true;
+const headerHeight = 65; // Must match the CSS var(--header-height)
 
 
 // =========================================================
@@ -33,14 +34,16 @@ function loadLocalVideo(inputElement, videoId) {
         videoElement.src = videoURL;
         videoElement.load();
         
-        // Hide the upload button overlay
+        // Hide the upload button overlay with a fade transition
         if (uploadButton) {
             uploadButton.style.opacity = '0';
             setTimeout(() => {
                 uploadButton.style.display = 'none';
-            }, 300); // Wait for fade transition
+            }, 300); // Matches CSS transition time
         }
 
+        // Attempt to play (required to be unmuted/muted based on current state)
+        videoElement.muted = isMuted;
         videoElement.play()
             .then(() => {
                 console.log(`Video ${videoId} started successfully!`);
@@ -55,12 +58,11 @@ function loadLocalVideo(inputElement, videoId) {
 
 
 // =========================================================
-// 2. RESIZING LOGIC (Updated to respect header/footer)
+// 2. RESIZING LOGIC (Corrected for Container Bounds)
 // =========================================================
 
 let isDraggingV = false;
 let isDraggingH = false;
-const headerHeight = 65; // Matches CSS header height
 
 // --- Mouse Drag Logic ---
 vDivider.addEventListener('mousedown', (e) => { e.preventDefault(); isDraggingV = true; vDivider.classList.add('dragging'); });
@@ -68,6 +70,7 @@ hDivider.addEventListener('mousedown', (e) => { e.preventDefault(); isDraggingH 
 
 document.addEventListener('mousemove', (e) => {
     if (isDraggingV) {
+        // Vertical Divider (Column Resizing)
         let newWidthPercent = (e.clientX / window.innerWidth) * 100;
         newWidthPercent = Math.min(90, Math.max(10, newWidthPercent));
         
@@ -76,15 +79,22 @@ document.addEventListener('mousemove', (e) => {
     }
 
     if (isDraggingH) {
-        // e.clientY is relative to the top of the viewport
-        let newHeightPx = e.clientY - headerHeight;
-        let containerHeight = container.offsetHeight;
+        // Horizontal Divider (Row Resizing) - Fixed logic
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate the position of the cursor relative to the container's top edge
+        let newPosInContainer = e.clientY - containerRect.top;
 
-        let newHeightPercent = (newHeightPx / containerHeight) * 100;
+        // Calculate the new height as a percentage of the container's total height
+        let newHeightPercent = (newPosInContainer / containerRect.height) * 100;
+        
+        // Clamp the percentage between 10% and 90%
         newHeightPercent = Math.min(90, Math.max(10, newHeightPercent));
 
-        // Position divider relative to the entire viewport height
-        hDivider.style.top = (newHeightPx + headerHeight) + 'px';
+        // Update the horizontal divider's position relative to the document
+        hDivider.style.top = containerRect.top + newPosInContainer + 'px';
+
+        // Update the grid rows template
         container.style.gridTemplateRows = `${newHeightPercent}fr ${100 - newHeightPercent}fr`;
     }
 });
@@ -97,10 +107,11 @@ document.addEventListener('mouseup', () => {
 });
 
 
-// --- Touch Drag Logic (Added for Mobile) ---
+// =========================================================
+// 3. TOUCH SUPPORT FOR RESIZING
+// =========================================================
 
 function getTouchCoords(e) {
-    // If it's a mouse event, use clientX/Y. If it's a touch event, use the first touch.
     return (e.touches && e.touches.length) ? e.touches[0] : e;
 }
 
@@ -113,7 +124,7 @@ function handleTouchStart(e, dividerType) {
         isDraggingH = true;
         hDivider.classList.add('dragging');
     }
-    // Simulate mousedown for compatibility
+    // Simulate mousedown for compatibility with existing mousemove logic
     document.dispatchEvent(new MouseEvent('mousedown', getTouchCoords(e)));
 }
 
@@ -142,7 +153,7 @@ document.addEventListener('touchend', handleTouchEnd);
 
 
 // =========================================================
-// 3. CONTROL PANEL LOGIC (SYNC, RESET, MUTE)
+// 4. CONTROL PANEL LOGIC (SYNC, RESET, MUTE)
 // =========================================================
 
 syncButton.addEventListener('click', () => {
@@ -181,20 +192,20 @@ resetButton.addEventListener('click', () => {
 
     // Resetting divider positions
     vDivider.style.left = '50vw';
-    // The top position needs to be reset to the centered value relative to the screen size
-    // It's easier to remove the inline style and let CSS handle the center via the transform
-    hDivider.style.top = '50%';
+    // Resetting the vertical position to the center (50% of the container's height + header height)
+    const containerHeight = container.offsetHeight;
+    const verticalCenterPx = (containerHeight / 2) + headerHeight;
+    hDivider.style.top = verticalCenterPx + 'px';
 });
 
 muteAllButton.addEventListener('click', () => {
     isMuted = !isMuted;
     videoElements.forEach(video => {
-        // Only toggle muted state if a video source is present
         if (video.src) {
              video.muted = isMuted;
         }
     });
 
-    muteAllButton.textContent = isMuted ? 'Unmute All' : 'Mute All';
-    muteAllButton.style.backgroundColor = isMuted ? '#34495e' : '#e74c3c'; // Red when unmuted, for caution
+    muteAllButton.textContent = isMuted ? 'Mute All' : 'Unmute All';
+    muteAllButton.style.backgroundColor = isMuted ? '#34495e' : '#e74c3c';
 });
