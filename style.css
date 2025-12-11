@@ -6,6 +6,8 @@
     --accent-color: #007bff;
     --text-color: #ffffff;
     --light-text: #aaaaaa;
+    --header-height: 65px; /* Define header height */
+    --footer-height: 70px; /* Define control panel height */
 }
 
 body, html {
@@ -15,12 +17,13 @@ body, html {
     background-color: var(--bg-color);
     font-family: 'Arial', sans-serif;
     user-select: none;
-    overflow: hidden; 
+    overflow: hidden; /* CRITICAL: Prevent scrolling */
     color: var(--text-color);
 }
 
 header {
     width: 100vw;
+    height: var(--header-height); /* Use defined height */
     padding: 10px 0;
     text-align: center;
     background-color: var(--card-color);
@@ -28,6 +31,7 @@ header {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     z-index: 5;
     position: relative;
+    box-sizing: border-box; /* Include padding/border in height */
 }
 
 header h1 {
@@ -42,26 +46,25 @@ header h1 {
     color: var(--light-text);
 }
 
-/* --- Video Grid Container --- */
+/* --- Video Grid Container (The height fix is here!) --- */
 .video-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    /* Calculate remaining height: Full viewport minus header height and control panel height */
-    height: calc(100vh - 65px - 70px); 
+    /* FIX: Correctly calculate the height available for the grid */
+    height: calc(100vh - var(--header-height) - var(--footer-height)); 
     width: 100vw;
     overflow: hidden;
 }
 
 .video-slot {
     position: relative;
-    /* Clearer border style */
     border: 2px solid var(--border-color);
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: var(--card-color);
-    box-sizing: border-box; /* Include border in slot dimensions */
+    box-sizing: border-box; 
     transition: background-color 0.2s;
 }
 
@@ -69,7 +72,7 @@ header h1 {
 video {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* CRITICAL: Ensures no clipping */
+    object-fit: contain;
     display: block;
 }
 
@@ -78,9 +81,8 @@ video {
     display: none;
 }
 
-/* --- Upload Button & Labels (Self-Explanatory) --- */
+/* --- Upload Button & Labels --- */
 .upload-button {
-    /* Covers the entire slot when video is not loaded */
     position: absolute;
     top: 0;
     left: 0;
@@ -92,7 +94,6 @@ video {
     align-items: center;
     background-color: var(--card-color);
     color: var(--text-color);
-    border: none;
     cursor: pointer;
     z-index: 10;
     transition: background-color 0.2s, opacity 0.3s;
@@ -133,8 +134,8 @@ video {
 /* Vertical Divider */
 .vertical {
     left: 50vw; 
-    top: 65px; /* Account for the header */
-    bottom: 70px; /* Account for the control panel */
+    top: var(--header-height); /* Starts right below the header */
+    bottom: var(--footer-height); /* Ends right above the footer */
     width: 15px; 
     cursor: col-resize; 
     transform: translateX(-50%); 
@@ -142,7 +143,7 @@ video {
 
 /* Horizontal Divider */
 .horizontal {
-    top: calc(50% + 32.5px); /* Centers between header and footer */
+    /* We will set the 'top' property via JavaScript relative to the container */
     left: 0;
     right: 0;
     height: 15px; 
@@ -150,12 +151,12 @@ video {
     transform: translateY(-50%); 
 }
 
-/* --- Control Panel (Pop and Pizazz) --- */
+/* --- Control Panel (Footer) --- */
 .control-panel {
     position: fixed;
     bottom: 0;
     width: 100vw;
-    height: 70px;
+    height: var(--footer-height);
     background-color: var(--card-color);
     border-top: 1px solid var(--border-color);
     display: flex;
@@ -181,26 +182,9 @@ video {
     transform: scale(0.98);
 }
 
-.sync-play {
-    background-color: var(--accent-color);
-}
-
-.sync-play:hover {
-    background-color: #0056b3;
-}
-
-.reset {
-    background-color: #f39c12; /* Orange */
-}
-
-.reset:hover {
-    background-color: #e67e22;
-}
-
-.mute-toggle {
-    background-color: #34495e; /* Gray-Blue */
-}
-
-.mute-toggle:hover {
-    background-color: #2c3e50;
-}
+.sync-play { background-color: var(--accent-color); }
+.sync-play:hover { background-color: #0056b3; }
+.reset { background-color: #f39c12; }
+.reset:hover { background-color: #e67e22; }
+.mute-toggle { background-color: #34495e; }
+.mute-toggle:hover { background-color: #2c3e50; }
