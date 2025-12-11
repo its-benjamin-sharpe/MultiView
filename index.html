@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-Video Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="video-container">
+        <div class="video-slot">
+            <input type="file" accept="video/*" class="file-input" id="file1" onchange="loadLocalVideo(this, 'player1')">
+            <video id="player1" controls muted autoplay playsinline></video>
+            <label for="file1" class="upload-button">Upload Video 1</label>
+        </div>
+
+        <div class="video-slot">
+            <input type="file" accept="video/*" class="file-input" id="file2" onchange="loadLocalVideo(this, 'player2')">
+            <video id="player2" controls muted autoplay playsinline></video>
+            <label for="file2" class="upload-button">Upload Video 2</label>
+        </div>
+
+        <div class="video-slot">
+            <input type="file" accept="video/*" class="file-input" id="file3" onchange="loadLocalVideo(this, 'player3')">
+            <video id="player3" controls muted autoplay playsinline></video>
+            <label for="file3" class="upload-button">Upload Video 3</label>
+        </div>
+
+        <div class="video-slot">
+            <input type="file" accept="video/*" class="file-input" id="file4" onchange="loadLocalVideo(this, 'player4')">
+            <video id="player4" controls muted autoplay playsinline></video>
+            <label for="file4" class="upload-button">Upload Video 4</label>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
