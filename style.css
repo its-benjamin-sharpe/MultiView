@@ -3,33 +3,37 @@ body, html {
     margin: 0;
     padding: 0;
     height: 100%;
-    background-color: #1a1a1a; /* Dark background */
+    background-color: #1a1a1a;
     font-family: sans-serif;
+    /* Prevents selecting text while dragging dividers */
+    user-select: none;
+    overflow: hidden; 
 }
 
 .video-container {
     display: grid;
-    /* Create 2 columns and 2 rows, each taking up equal space (1fr) */
+    /* Initial 50/50 split (will be overridden by script.js when dragging) */
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    height: 100vh; /* Viewport height */
-    width: 100vw;  /* Viewport width */
-    overflow: hidden; /* Hide any scrolling */
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
 }
 
 .video-slot {
-    position: relative; /* Allows button and video to be layered */
-    border: 1px solid #333; /* Visual separation */
-    display: flex; /* For centering the button if video isn't loaded */
+    position: relative;
+    border: 1px solid #333;
+    display: flex;
     justify-content: center;
     align-items: center;
     background-color: #222;
+    overflow: hidden; /* Ensure video stays within slot */
 }
 
 video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures the video fills the slot without stretching */
+    object-fit: cover;
     display: block;
 }
 
@@ -38,7 +42,7 @@ video {
     display: none;
 }
 
-/* Style the custom upload button (the label associated with the file input) */
+/* Style the custom upload button (the label) */
 .upload-button {
     position: absolute;
     padding: 10px 20px;
@@ -49,10 +53,68 @@ video {
     cursor: pointer;
     font-weight: bold;
     text-align: center;
-    z-index: 10; /* Ensure button is on top of the video */
+    z-index: 10;
     transition: background-color 0.2s;
 }
 
 .upload-button:hover {
     background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* --- Resizer Divider Styling --- */
+
+.divider {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent handle */
+    z-index: 20; /* Above videos and upload buttons */
+    /* Ensure the divider covers the entire width/height of the grid line */
+    transition: background-color 0.1s;
+}
+
+.divider:hover {
+    background-color: rgba(0, 123, 255, 0.5); /* Highlight on hover */
+}
+
+/* Vertical Divider (separates columns) */
+.vertical {
+    left: 50vw; /* Starts in the middle */
+    top: 0;
+    bottom: 0;
+    width: 8px; /* Width of the handle */
+    cursor: col-resize; /* Cursor for horizontal resizing */
+    transform: translateX(-50%); /* Center the handle precisely */
+}
+
+/* Horizontal Divider (separates rows) */
+.horizontal {
+    top: 50vh; /* Starts in the middle */
+    left: 0;
+    right: 0;
+    height: 8px; /* Height of the handle */
+    cursor: row-resize; /* Cursor for vertical resizing */
+    transform: translateY(-50%); /* Center the handle precisely */
+}
+
+/* --- Control Button Styling (Sync/Pause) --- */
+
+.control-button {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 25px;
+    font-size: 16px;
+    background-color: #007bff; /* Blue */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    z-index: 30; /* Highest z-index */
+    transition: background-color 0.3s;
+    user-select: none;
+}
+
+.control-button:hover {
+    background-color: #0056b3;
 }
