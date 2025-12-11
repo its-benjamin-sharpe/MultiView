@@ -8,15 +8,15 @@ const hDivider = document.getElementById('horizontal-divider');
 const syncButton = document.getElementById('sync-button');
 const resetButton = document.getElementById('reset-button');
 const muteAllButton = document.getElementById('mute-all-button');
+const layoutSelector = document.getElementById('layout-selector');
+const applyLayoutButton = document.getElementById('apply-layout');
 
-const videoElements = [
-    document.getElementById('player1'),
-    document.getElementById('player2'),
-    document.getElementById('player3'),
-    document.getElementById('player4')
-];
+const allSlotElements = Array.from({length: 8}, (_, i) => document.getElementById(`slot-${i + 1}`));
+const videoElements = Array.from({length: 8}, (_, i) => document.getElementById(`player${i + 1}`));
+
 let isMuted = true;
-const headerHeight = 65; // Must match the CSS var(--header-height)
+const headerHeight = 60; // Must match CSS var(--header-height)
+const topControlsHeight = 40; // Must match CSS var(--top-controls-height)
 
 
 // =========================================================
@@ -34,31 +34,92 @@ function loadLocalVideo(inputElement, videoId) {
         videoElement.src = videoURL;
         videoElement.load();
         
-        // Hide the upload button overlay with a fade transition
         if (uploadButton) {
             uploadButton.style.opacity = '0';
             setTimeout(() => {
                 uploadButton.style.display = 'none';
-            }, 300); // Matches CSS transition time
+            }, 300);
         }
 
-        // Attempt to play (required to be unmuted/muted based on current state)
         videoElement.muted = isMuted;
-        videoElement.play()
-            .then(() => {
-                console.log(`Video ${videoId} started successfully!`);
-            })
-            .catch(error => {
-                console.warn("Autoplay blocked. User must click the play button:", error);
-                // Ensure controls are visible for user interaction
-                videoElement.setAttribute('controls', 'true');
-            });
+        videoElement.play().catch(error => {
+            console.warn("Autoplay blocked. User must click the play button:", error);
+            videoElement.setAttribute('controls', 'true');
+        });
     }
 }
 
 
 // =========================================================
-// 2. RESIZING LOGIC (Corrected for Container Bounds)
+// 2. DYNAMIC LAYOUT & TEMPLATE LOGIC (New)
+// =========================================================
+
+const LAYOUT_DEFINITIONS = {
+    1: { rows: 1, cols: 1, resizable: false },
+    2: { rows: 1, cols: 2, resizable: true, vertical: true, horizontal: false },
+    3: { rows: 2, cols: 2, resizable: true, vertical: true, horizontal: true, span: [1] }, // 1st slot spans 2 columns
+    4: { rows: 2, cols: 2, resizable: true, vertical: true, horizontal: true },
+    5: { rows: 2, cols: 3, resizable: true, vertical: true, horizontal: true, span: [1, 2] }, // 1st & 2nd slots span 3 columns
+    6: { rows: 2, cols: 3, resizable: true, vertical: true, horizontal: true },
+    7: { rows: 2, cols: 4, resizable: true, vertical: true, horizontal: true, span: [1] }, // Top row has 4 videos, bottom has 3. Need complex spanning for optimal layout. Simplified to 4x2 grid with 7 active slots.
+    8: { rows: 2, cols: 4, resizable: true, vertical: true, horizontal: true }
+};
+
+function applyLayout() {
+    const layoutId = layoutSelector.value;
+    const def = LAYOUT_DEFINITIONS[layoutId];
+    const numSlots = parseInt(layoutId);
+
+    // 1. Reset and Apply Grid Template
+    container.className = 'video-container';
+    container.classList.add(`layout-${layoutId}`);
+    
+    // Set explicit grid structure for complex layouts (e.g., 3 and 5)
+    if (layoutId == 3) {
+        container.style.gridTemplateColumns = '1fr 1fr'; // 2 columns
+        container.style.gridTemplateRows = '1fr 1fr'; // 2 rows
+        allSlotElements[0].style.gridColumn = 'span 2'; // Slot 1 spans both columns
+        allSlotElements[0].style.gridRow = 'span 1';
+    } else if (layoutId == 5) {
+        container.style.gridTemplateColumns = '1fr 1fr 1fr'; // 3 columns
+        container.style.gridTemplateRows = '1fr 1fr'; // 2 rows
+        allSlotElements[0].style.gridColumn = 'span 3'; // Slot 1 spans all 3 columns
+        allSlotElements[0].style.gridRow = 'span 1';
+        // Need to shift the remaining slots visually, but keep slots 2-5
+        // We will activate slots 1, 2, 3, 4, 5
+    } else {
+        // Clear any specific spanning
+        allSlotElements.forEach(slot => {
+            slot.style.gridColumn = '';
+            slot.style.gridRow = '';
+        });
+    }
+
+    // 2. Control Slot Visibility
+    allSlotElements.forEach((slot, index) => {
+        // Show only the slots needed for this layout
+        if (index < numSlots) {
+            slot.classList.remove('hidden');
+        } else {
+            slot.classList.add('hidden');
+        }
+    });
+
+    // 3. Control Divider Visibility (Only for layouts that support 2 dimensions)
+    vDivider.classList.toggle('hidden', !(def.resizable && def.vertical));
+    hDivider.classList.toggle('hidden', !(def.resizable && def.horizontal));
+    
+    // 4. Set initial 50/50 split for a clean start
+    resetSplit();
+}
+
+applyLayoutButton.addEventListener('click', applyLayout);
+// Apply default 4-video layout on load
+document.addEventListener('DOMContentLoaded', applyLayout);
+
+
+// =========================================================
+// 3. RESIZING LOGIC (Corrected for Container Bounds)
 // =========================================================
 
 let isDraggingV = false;
@@ -70,29 +131,26 @@ hDivider.addEventListener('mousedown', (e) => { e.preventDefault(); isDraggingH 
 
 document.addEventListener('mousemove', (e) => {
     if (isDraggingV) {
-        // Vertical Divider (Column Resizing)
-        let newWidthPercent = (e.clientX / window.innerWidth) * 100;
+        const containerRect = container.getBoundingClientRect();
+        let newPosInContainer = e.clientX - containerRect.left;
+        let newWidthPercent = (newPosInContainer / containerRect.width) * 100;
+        
         newWidthPercent = Math.min(90, Math.max(10, newWidthPercent));
         
-        vDivider.style.left = newWidthPercent + 'vw';
+        vDivider.style.left = newWidthPercent + '%';
+        // Note: The grid template columns definition in CSS must be generic (e.g., 1fr 1fr) for this to work
         container.style.gridTemplateColumns = `${newWidthPercent}fr ${100 - newWidthPercent}fr`;
     }
 
     if (isDraggingH) {
-        // Horizontal Divider (Row Resizing) - Fixed logic
         const containerRect = container.getBoundingClientRect();
-        
-        // Calculate the position of the cursor relative to the container's top edge
         let newPosInContainer = e.clientY - containerRect.top;
-
-        // Calculate the new height as a percentage of the container's total height
         let newHeightPercent = (newPosInContainer / containerRect.height) * 100;
         
-        // Clamp the percentage between 10% and 90%
         newHeightPercent = Math.min(90, Math.max(10, newHeightPercent));
 
-        // Update the horizontal divider's position relative to the document
-        hDivider.style.top = containerRect.top + newPosInContainer + 'px';
+        // Update divider position relative to container
+        hDivider.style.top = newHeightPercent + '%';
 
         // Update the grid rows template
         container.style.gridTemplateRows = `${newHeightPercent}fr ${100 - newHeightPercent}fr`;
@@ -108,7 +166,7 @@ document.addEventListener('mouseup', () => {
 
 
 // =========================================================
-// 3. TOUCH SUPPORT FOR RESIZING
+// 4. TOUCH SUPPORT FOR RESIZING
 // =========================================================
 
 function getTouchCoords(e) {
@@ -116,6 +174,10 @@ function getTouchCoords(e) {
 }
 
 function handleTouchStart(e, dividerType) {
+    // Only allow drag if divider is visible
+    if(vDivider.classList.contains('hidden') && dividerType === 'vertical') return;
+    if(hDivider.classList.contains('hidden') && dividerType === 'horizontal') return;
+
     e.preventDefault();
     if (dividerType === 'vertical') {
         isDraggingV = true;
@@ -124,20 +186,17 @@ function handleTouchStart(e, dividerType) {
         isDraggingH = true;
         hDivider.classList.add('dragging');
     }
-    // Simulate mousedown for compatibility with existing mousemove logic
     document.dispatchEvent(new MouseEvent('mousedown', getTouchCoords(e)));
 }
 
 function handleTouchMove(e) {
     if (isDraggingV || isDraggingH) {
         e.preventDefault();
-        // Simulate mousemove
         document.dispatchEvent(new MouseEvent('mousemove', getTouchCoords(e)));
     }
 }
 
 function handleTouchEnd() {
-    // Simulate mouseup
     document.dispatchEvent(new MouseEvent('mouseup'));
     isDraggingV = false;
     isDraggingH = false;
@@ -153,12 +212,24 @@ document.addEventListener('touchend', handleTouchEnd);
 
 
 // =========================================================
-// 4. CONTROL PANEL LOGIC (SYNC, RESET, MUTE)
+// 5. CONTROL PANEL LOGIC (SYNC, RESET, MUTE)
 // =========================================================
+
+function resetSplit() {
+    // Resetting the grid columns and rows to the initial 1fr 1fr for the *current* layout
+    container.style.gridTemplateColumns = `repeat(${LAYOUT_DEFINITIONS[layoutSelector.value].cols}, 1fr)`;
+    container.style.gridTemplateRows = `repeat(${LAYOUT_DEFINITIONS[layoutSelector.value].rows}, 1fr)`;
+
+    // Resetting divider positions to 50%
+    vDivider.style.left = '50%';
+    hDivider.style.top = '50%';
+}
+
+resetButton.addEventListener('click', resetSplit);
 
 syncButton.addEventListener('click', () => {
     let isAnyPlaying = videoElements.some(v => !v.paused);
-    let playableVideos = videoElements.filter(v => v.readyState >= 3 && v.src);
+    let playableVideos = videoElements.filter(v => v.readyState >= 3 && v.src && !v.parentElement.classList.contains('hidden'));
 
     if (playableVideos.length === 0) {
         alert("Please load at least one video file before syncing.");
@@ -183,19 +254,6 @@ syncButton.addEventListener('click', () => {
         });
         syncButton.textContent = 'PAUSE All Videos';
     }
-});
-
-resetButton.addEventListener('click', () => {
-    // Resetting the grid columns and rows to the initial 1fr 1fr
-    container.style.gridTemplateColumns = `1fr 1fr`;
-    container.style.gridTemplateRows = `1fr 1fr`;
-
-    // Resetting divider positions
-    vDivider.style.left = '50vw';
-    // Resetting the vertical position to the center (50% of the container's height + header height)
-    const containerHeight = container.offsetHeight;
-    const verticalCenterPx = (containerHeight / 2) + headerHeight;
-    hDivider.style.top = verticalCenterPx + 'px';
 });
 
 muteAllButton.addEventListener('click', () => {
