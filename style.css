@@ -6,32 +6,37 @@
     --accent-color: #007bff;
     --text-color: #ffffff;
     --light-text: #aaaaaa;
-    --header-height: 65px; /* Define header height */
-    --footer-height: 70px; /* Define control panel height */
+    --header-height: 60px; /* Adjusted slightly */
+    --top-controls-height: 40px; /* New control height */
+    --footer-height: 70px; 
 }
 
 body, html {
     margin: 0;
     padding: 0;
-    height: 100%;
+    /* FIX: Re-enable vertical scroll as primary safety net */
+    overflow-x: hidden;
+    overflow-y: auto; 
+    min-height: 100vh; /* Ensure body covers full screen at least */
     background-color: var(--bg-color);
     font-family: 'Arial', sans-serif;
     user-select: none;
-    overflow: hidden; /* CRITICAL: Prevent scrolling */
     color: var(--text-color);
 }
 
+/* --- Header & Top Controls (Sticky) --- */
 header {
     width: 100vw;
-    height: var(--header-height); /* Use defined height */
+    height: var(--header-height);
     padding: 10px 0;
     text-align: center;
     background-color: var(--card-color);
     border-bottom: 1px solid var(--border-color);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    z-index: 5;
-    position: relative;
-    box-sizing: border-box; /* Include padding/border in height */
+    z-index: 100; /* Ensure header is on top */
+    position: sticky;
+    top: 0;
+    box-sizing: border-box;
 }
 
 header h1 {
@@ -39,22 +44,39 @@ header h1 {
     font-size: 1.5em;
     color: var(--accent-color);
 }
+.instruction { margin: 5px 0 0; font-size: 0.8em; color: var(--light-text); }
 
-.instruction {
-    margin: 5px 0 0;
-    font-size: 0.8em;
-    color: var(--light-text);
+.top-controls {
+    width: 100vw;
+    height: var(--top-controls-height);
+    background-color: #282828;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border-color);
+    z-index: 99;
+    position: sticky;
+    top: var(--header-height); /* Sticks right under the header */
 }
 
-/* --- Video Grid Container (The height fix is here!) --- */
+#layout-selector {
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: var(--card-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+/* --- Video Grid Container --- */
 .video-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    /* FIX: Correctly calculate the height available for the grid */
-    height: calc(100vh - var(--header-height) - var(--footer-height)); 
+    /* FIX: Set a minimum height to use all available space */
+    min-height: calc(100vh - var(--header-height) - var(--top-controls-height) - var(--footer-height)); 
     width: 100vw;
-    overflow: hidden;
+    overflow: hidden; 
+    position: relative; /* For divider positioning */
 }
 
 .video-slot {
@@ -68,63 +90,52 @@ header h1 {
     transition: background-color 0.2s;
 }
 
-/* --- Video Elements --- */
-video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-}
-
-/* Hide the default file input button */
-.file-input {
+.video-slot.hidden {
     display: none;
 }
 
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* CRITICAL: Ensures no clipping */
+    display: block;
+}
+
+/* --- Dynamic Grid Templates (Managed by JS) --- */
+
+.layout-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.layout-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+.layout-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.layout-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.layout-5 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.layout-6 { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.layout-7 { grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.layout-8 { grid-template-columns: 1fr 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+
 /* --- Upload Button & Labels --- */
+.file-input { display: none; }
 .upload-button {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--card-color);
-    color: var(--text-color);
-    cursor: pointer;
-    z-index: 10;
-    transition: background-color 0.2s, opacity 0.3s;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    background-color: var(--card-color); color: var(--text-color); cursor: pointer;
+    z-index: 10; transition: background-color 0.2s, opacity 0.3s;
 }
+.upload-button:hover { background-color: #2a2a2a; }
+.slot-label { position: absolute; top: 10px; left: 10px; font-size: 1.2em; font-weight: bold; color: var(--accent-color); }
+.upload-text { font-size: 1.2em; padding: 10px 20px; border: 2px dashed var(--border-color); border-radius: 5px; }
 
-.upload-button:hover {
-    background-color: #2a2a2a;
-}
 
-.slot-label {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: var(--accent-color);
-}
-
-.upload-text {
-    font-size: 1.2em;
-    padding: 10px 20px;
-    border: 2px dashed var(--border-color);
-    border-radius: 5px;
-}
-
-/* --- Resizer Divider Styling (Touch Friendly) --- */
+/* --- Resizer Divider Styling (Inside Container) --- */
 .divider {
     position: absolute;
     background-color: rgba(255, 255, 255, 0.1); 
     z-index: 20;
     transition: background-color 0.1s;
+}
+
+.divider.hidden {
+    display: none !important;
 }
 
 .divider:hover, .divider.dragging {
@@ -133,9 +144,8 @@ video {
 
 /* Vertical Divider */
 .vertical {
-    left: 50vw; 
-    top: var(--header-height); /* Starts right below the header */
-    bottom: var(--footer-height); /* Ends right above the footer */
+    top: 0; 
+    bottom: 0; 
     width: 15px; 
     cursor: col-resize; 
     transform: translateX(-50%); 
@@ -143,7 +153,6 @@ video {
 
 /* Horizontal Divider */
 .horizontal {
-    /* We will set the 'top' property via JavaScript relative to the container */
     left: 0;
     right: 0;
     height: 15px; 
@@ -153,7 +162,7 @@ video {
 
 /* --- Control Panel (Footer) --- */
 .control-panel {
-    position: fixed;
+    position: sticky; /* Sticky ensures it stays in view when scrolling is minimal */
     bottom: 0;
     width: 100vw;
     height: var(--footer-height);
@@ -178,10 +187,9 @@ video {
     color: var(--text-color);
 }
 
-.control-button:active {
-    transform: scale(0.98);
-}
-
+.control-button:active { transform: scale(0.98); }
+.apply-btn { background-color: #2ecc71; }
+.apply-btn:hover { background-color: #27ae60; }
 .sync-play { background-color: var(--accent-color); }
 .sync-play:hover { background-color: #0056b3; }
 .reset { background-color: #f39c12; }
