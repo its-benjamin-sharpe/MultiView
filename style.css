@@ -1,27 +1,206 @@
-/* --- New Rule in style.css --- */
+/* --- Global & Typography --- */
+:root {
+    --bg-color: #121212;
+    --card-color: #1e1e1e;
+    --border-color: #444444;
+    --accent-color: #007bff;
+    --text-color: #ffffff;
+    --light-text: #aaaaaa;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: var(--bg-color);
+    font-family: 'Arial', sans-serif;
+    user-select: none;
+    overflow: hidden; 
+    color: var(--text-color);
+}
+
+header {
+    width: 100vw;
+    padding: 10px 0;
+    text-align: center;
+    background-color: var(--card-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    z-index: 5;
+    position: relative;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5em;
+    color: var(--accent-color);
+}
+
+.instruction {
+    margin: 5px 0 0;
+    font-size: 0.8em;
+    color: var(--light-text);
+}
+
+/* --- Video Grid Container --- */
+.video-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    /* Calculate remaining height: Full viewport minus header height and control panel height */
+    height: calc(100vh - 65px - 70px); 
+    width: 100vw;
+    overflow: hidden;
+}
+
+.video-slot {
+    position: relative;
+    /* Clearer border style */
+    border: 2px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--card-color);
+    box-sizing: border-box; /* Include border in slot dimensions */
+    transition: background-color 0.2s;
+}
+
+/* --- Video Elements --- */
 video {
     width: 100%;
     height: 100%;
-    /* CRITICAL CHANGE: 'contain' ensures the entire video is visible.
-      It scales the video to fit entirely within the slot, preserving its aspect ratio.
-      This may result in black bars (letterboxing/pillarboxing).
-    */
-    object-fit: contain; 
+    object-fit: contain; /* CRITICAL: Ensures no clipping */
     display: block;
 }
-/* --- End of New Rule --- */
 
-/* Minor adjustment for easier tapping/dragging on a mobile screen */
-.vertical {
-    /* Increase handle width for touch devices */
-    width: 15px; 
-    /* Keep the cursor for clarity */
-    cursor: col-resize; 
+/* Hide the default file input button */
+.file-input {
+    display: none;
 }
 
+/* --- Upload Button & Labels (Self-Explanatory) --- */
+.upload-button {
+    /* Covers the entire slot when video is not loaded */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--card-color);
+    color: var(--text-color);
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    transition: background-color 0.2s, opacity 0.3s;
+}
+
+.upload-button:hover {
+    background-color: #2a2a2a;
+}
+
+.slot-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.upload-text {
+    font-size: 1.2em;
+    padding: 10px 20px;
+    border: 2px dashed var(--border-color);
+    border-radius: 5px;
+}
+
+/* --- Resizer Divider Styling (Touch Friendly) --- */
+.divider {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.1); 
+    z-index: 20;
+    transition: background-color 0.1s;
+}
+
+.divider:hover, .divider.dragging {
+    background-color: var(--accent-color); 
+}
+
+/* Vertical Divider */
+.vertical {
+    left: 50vw; 
+    top: 65px; /* Account for the header */
+    bottom: 70px; /* Account for the control panel */
+    width: 15px; 
+    cursor: col-resize; 
+    transform: translateX(-50%); 
+}
+
+/* Horizontal Divider */
 .horizontal {
-    /* Increase handle height for touch devices */
+    top: calc(50% + 32.5px); /* Centers between header and footer */
+    left: 0;
+    right: 0;
     height: 15px; 
-    /* Keep the cursor for clarity */
     cursor: row-resize; 
+    transform: translateY(-50%); 
+}
+
+/* --- Control Panel (Pop and Pizazz) --- */
+.control-panel {
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+    height: 70px;
+    background-color: var(--card-color);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
+    z-index: 30;
+}
+
+.control-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    border: none;
+    color: var(--text-color);
+}
+
+.control-button:active {
+    transform: scale(0.98);
+}
+
+.sync-play {
+    background-color: var(--accent-color);
+}
+
+.sync-play:hover {
+    background-color: #0056b3;
+}
+
+.reset {
+    background-color: #f39c12; /* Orange */
+}
+
+.reset:hover {
+    background-color: #e67e22;
+}
+
+.mute-toggle {
+    background-color: #34495e; /* Gray-Blue */
+}
+
+.mute-toggle:hover {
+    background-color: #2c3e50;
 }
