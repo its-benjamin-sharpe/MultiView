@@ -3,61 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MultiView Comparison Tool</title>
+    <title>N-View Comparison Console</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h1>4-View Video Comparator 🎥</h1>
+        <h1>N-View Comparison Console 🚀</h1>
         <p class="instruction">
-            1. Click/Tap any 'Upload' zone to load a video. 
-            2. Drag the central lines to resize the windows. 
-            3. Use the control panel below to sync playback.
+            1. Select a Layout. 2. Load videos into the slots. 3. Use controls below to sync.
         </p>
     </header>
+
+    <div class="top-controls">
+        <label for="layout-selector">Choose Layout:</label>
+        <select id="layout-selector">
+            <option value="1">1 Video (Full Screen)</option>
+            <option value="2">2 Videos (Horizontal Split)</option>
+            <option value="3">3 Videos (1 over 2 Split)</option>
+            <option value="4" selected>4 Videos (2x2 Grid)</option>
+            <option value="5">5 Videos (2 over 3 Split)</option>
+            <option value="6">6 Videos (3x2 Grid)</option>
+            <option value="7">7 Videos (4 over 3 Split)</option>
+            <option value="8">8 Videos (4x2 Grid)</option>
+        </select>
+        <button id="apply-layout" class="control-button apply-btn">Apply Layout</button>
+    </div>
 
     <div class="video-container">
         <div class="video-slot" id="slot-1">
             <input type="file" accept="video/*" class="file-input" id="file1" onchange="loadLocalVideo(this, 'player1')">
             <video id="player1" controls muted playsinline></video>
-            <label for="file1" class="upload-button">
-                <span class="slot-label">Slot 1</span>
-                <span class="upload-text">+ UPLOAD VIDEO</span>
-            </label>
+            <label for="file1" class="upload-button"><span class="slot-label">Slot 1</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
         </div>
 
         <div class="video-slot" id="slot-2">
             <input type="file" accept="video/*" class="file-input" id="file2" onchange="loadLocalVideo(this, 'player2')">
             <video id="player2" controls muted playsinline></video>
-            <label for="file2" class="upload-button">
-                <span class="slot-label">Slot 2</span>
-                <span class="upload-text">+ UPLOAD VIDEO</span>
-            </label>
+            <label for="file2" class="upload-button"><span class="slot-label">Slot 2</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
         </div>
 
         <div class="video-slot" id="slot-3">
             <input type="file" accept="video/*" class="file-input" id="file3" onchange="loadLocalVideo(this, 'player3')">
             <video id="player3" controls muted playsinline></video>
-            <label for="file3" class="upload-button">
-                <span class="slot-label">Slot 3</span>
-                <span class="upload-text">+ UPLOAD VIDEO</span>
-            </label>
+            <label for="file3" class="upload-button"><span class="slot-label">Slot 3</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
         </div>
 
         <div class="video-slot" id="slot-4">
             <input type="file" accept="video/*" class="file-input" id="file4" onchange="loadLocalVideo(this, 'player4')">
             <video id="player4" controls muted playsinline></video>
-            <label for="file4" class="upload-button">
-                <span class="slot-label">Slot 4</span>
-                <span class="upload-text">+ UPLOAD VIDEO</span>
-            </label>
+            <label for="file4" class="upload-button"><span class="slot-label">Slot 4</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
         </div>
+        
+        <div class="video-slot" id="slot-5">
+            <input type="file" accept="video/*" class="file-input" id="file5" onchange="loadLocalVideo(this, 'player5')">
+            <video id="player5" controls muted playsinline></video>
+            <label for="file5" class="upload-button"><span class="slot-label">Slot 5</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
+        </div>
+
+        <div class="video-slot" id="slot-6">
+            <input type="file" accept="video/*" class="file-input" id="file6" onchange="loadLocalVideo(this, 'player6')">
+            <video id="player6" controls muted playsinline></video>
+            <label for="file6" class="upload-button"><span class="slot-label">Slot 6</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
+        </div>
+
+        <div class="video-slot" id="slot-7">
+            <input type="file" accept="video/*" class="file-input" id="file7" onchange="loadLocalVideo(this, 'player7')">
+            <video id="player7" controls muted playsinline></video>
+            <label for="file7" class="upload-button"><span class="slot-label">Slot 7</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
+        </div>
+        
+        <div class="video-slot" id="slot-8">
+            <input type="file" accept="video/*" class="file-input" id="file8" onchange="loadLocalVideo(this, 'player8')">
+            <video id="player8" controls muted playsinline></video>
+            <label for="file8" class="upload-button"><span class="slot-label">Slot 8</span><span class="upload-text">+ UPLOAD VIDEO</span></label>
+        </div>
+
+        <div id="vertical-divider" class="divider vertical hidden"></div>
+        <div id="horizontal-divider" class="divider horizontal hidden"></div>
     </div>
     
-    <div id="vertical-divider" class="divider vertical"></div>
-    <div id="horizontal-divider" class="divider horizontal"></div>
-
     <div class="control-panel">
         <button id="sync-button" class="control-button sync-play">PLAY All Videos</button>
         <button id="reset-button" class="control-button reset">Reset Split</button>
